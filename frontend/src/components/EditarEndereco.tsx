@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
-import api from "../services/api";
-import apiCep from "../services/apiCep";
-import { enderecoSchema, validarCPF } from "../schemas/enderecoSchema";
-import type { EnderecoFormData } from "../schemas/enderecoSchema";
+import { enderecoSchema, validarCPF, type EnderecoFormData } from "../schemas/enderecoSchema";
 import type { Endereco } from "../types/Endereco";
 import { formatCPF, formatCEP } from "../utils/formatters";
+import { updateEndereco, fetchCep } from "../services/api";
 
 interface Props {
   endereco: Endereco;
@@ -81,7 +79,7 @@ export default function EditarEndereco({
     const cepLimpo = valor.replace(/\D/g, "");
     if (cepLimpo.length === 8) {
       try {
-        const { data } = await apiCep.get(`/${cepLimpo}`);
+        const data = await fetchCep(cepLimpo); // ✅ Função centralizada
         if (!data.erro) {
           setForm(prev => ({
             ...prev,
@@ -94,8 +92,8 @@ export default function EditarEndereco({
         } else {
           limparEndereco(valor);
         }
-      } catch (error) {
-        console.error("Erro ao buscar CEP", error);
+      } catch {
+        limparEndereco(valor);
       }
     } else {
       limparEndereco(valor);
@@ -120,7 +118,6 @@ export default function EditarEndereco({
       cep: form.cep,
     };
 
-    // validando frontend
     if (cpfRaw.length !== 11 || !validarCPF(cpfRaw)) {
       setCpfError("CPF inválido");
       abrirModalMensagem("CPF inválido", "erro");
@@ -129,24 +126,21 @@ export default function EditarEndereco({
 
     const resultado = enderecoSchema.safeParse(formCompleto);
     if (!resultado.success) {
-      const primeiroErro = resultado.error.issues?.[0] || {
-        message: "Erro desconhecido",
-      };
-      abrirModalMensagem(primeiroErro.message, "erro");
+      abrirModalMensagem(resultado.error.issues[0]?.message || "Erro desconhecido", "erro");
       return;
     }
 
     try {
       setLoading(true);
-      await api.put(`/${endereco.id}`, formCompleto);
-    
+      await updateEndereco({ id: endereco.id, ...formCompleto }); // ✅ Função centralizada
+
       setErrors({});
       setCpfError("");
       onUpdated();
       abrirModalMensagem("Endereço atualizado com sucesso!", "sucesso");
     } catch (error: any) {
       let msg = "Erro ao atualizar endereço.";
-    
+
       if (
         error?.response?.status === 400 &&
         ((typeof error.response.data === "string" && error.response.data.includes("CPF")) ||
@@ -156,18 +150,14 @@ export default function EditarEndereco({
         abrirModalMensagem("CPF já cadastrado", "erro");
         return;
       }
-    
-      if (error?.response?.data && typeof error.response.data === "string") {
-        msg = error.response.data;
-      } else if (error?.response?.data?.message) {
-        msg = error.response.data.message;
-      }
-    
+
+      if (error?.response?.data && typeof error.response.data === "string") msg = error.response.data;
+      else if (error?.response?.data?.message) msg = error.response.data.message;
+
       abrirModalMensagem(msg, "erro");
     } finally {
       setLoading(false);
     }
-    
   }
 
   return (

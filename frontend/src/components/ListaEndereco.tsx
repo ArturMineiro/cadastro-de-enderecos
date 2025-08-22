@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import api from "../services/api";
+import { fetchEnderecos, deleteEndereco } from "../services/api";
 import EditarEndereco from "./EditarEndereco";
 import ModalMensagem from "./ModalMensagem";
 import ModalConfirmacao from "./ModalConfirmacao";
@@ -10,16 +10,14 @@ interface ListaEnderecosProps {
   atualizar?: boolean;
 }
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 4;
 
 const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
   const queryClient = useQueryClient();
+
   const { data: enderecos = [], isLoading, isError } = useQuery<Endereco[]>({
     queryKey: ["enderecos", atualizar],
-    queryFn: async () => {
-      const res = await api.get("");
-      return res.data;
-    },
+    queryFn: fetchEnderecos,
   });
 
   const [paginaAtual, setPaginaAtual] = useState(1);
@@ -49,7 +47,7 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
   const confirmarDelete = async () => {
     if (idParaDeletar === null) return;
     try {
-      await api.delete(`/${idParaDeletar}`);
+      await deleteEndereco(idParaDeletar);
       queryClient.invalidateQueries({ queryKey: ["enderecos"] });
       abrirModalMensagem("Endereço excluído com sucesso!", "sucesso");
     } catch {
@@ -79,13 +77,20 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
 
   useEffect(() => {
     if (modalAberto) {
-      const timer = setTimeout(() => {
-        setModalAberto(false);
-      }, 2000);
-      return () => clearTimeout(timer);
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = `${scrollBarWidth}px`; // evita o "pulo"
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
     }
+  
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    };
   }, [modalAberto]);
-
+  
   const handleActionClick = (id: number) => {
     setOpenActionId(openActionId === id ? null : id);
   };
@@ -95,7 +100,6 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
     setOpenActionId(null);
   };
 
-  // Botão Excluir modal
   const handleDelete = (id: number) => {
     solicitarDelete(id);
   };
@@ -124,34 +128,30 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 text-gray-900 dark:text-white">
                 {enderecosPaginados.map((e) => (
                   <tr key={e.id}>
-                    <td className="px-4 py-2">{e.nome}</td>
+                    <td className="px-4 py-2 ">{e.nome}</td>
                     <td className="px-4 py-2">{e.cpf}</td>
                     <td className="px-4 py-2">{e.cep}</td>
                     <td className="px-4 py-2">{`${e.logradouro}, ${e.bairro}, ${e.cidade} - ${e.estado}`}</td>
-                    <td className="px-4 py-2 relative">
-                      <button
-                        onClick={() => handleActionClick(e.id)}
-                        className="bg-indigo-600 text-white px-2 py-1 rounded"
-                      >
-                        Ações
-                      </button>
-                      {openActionId === e.id && (
-                        <div className="absolute bg-white dark:bg-gray-800 border rounded shadow-md mt-1 right-0 z-10">
-                          <button
-                            onClick={() => handleEdit(e)}
-                            className="block px-4 py-2 hover:bg-indigo-100 dark:hover:bg-gray-600 w-full text-left"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => handleDelete(e.id)}
-                            className="block px-4 py-2 hover:bg-red-100 dark:hover:bg-red-600 w-full text-left text-white-600"
-                          >
-                            Excluir
-                          </button>
-                        </div>
-                      )}
-                    </td>
+                    <td className="px-4 py-2 flex items-center gap-2">
+  {/* Botão Editar visível sempre */}
+  <button
+    onClick={() => handleEdit(e)}
+    className="bg-green-600 text-white px-2 py-1 rounded"
+  >
+    Editar
+  </button>
+
+  {/* Botão Excluir visível sempre */}
+  <button
+    onClick={() => handleDelete(e.id)}
+    className="bg-red-600 text-white px-2 py-1 rounded"
+  >
+    Excluir
+  </button>
+</td>
+
+
+
                   </tr>
                 ))}
               </tbody>
@@ -165,17 +165,11 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
         <div className="md:hidden space-y-4 overflow-y-auto">
           {enderecosPaginados.length > 0 ? (
             enderecosPaginados.map((e) => (
-              <div
-                key={e.id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white mt-3 max-w-full"
-              >
+              <div key={e.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white mt-3 max-w-full">
                 <p><strong>Nome:</strong> {e.nome}</p>
                 <p><strong>CPF:</strong> {e.cpf}</p>
                 <p><strong>CEP:</strong> {e.cep}</p>
-                <p className="break-words whitespace-normal">
-                  <strong>Endereço:</strong> {`${e.logradouro}, ${e.bairro}, ${e.cidade} - ${e.estado}`}
-                </p>
-
+                <p className="break-words whitespace-normal"><strong>Endereço:</strong> {`${e.logradouro}, ${e.bairro}, ${e.cidade} - ${e.estado}`}</p>
                 <div className="relative mt-2">
                   <button
                     onClick={() => handleActionClick(e.id)}
@@ -249,7 +243,6 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
         )}
       </div>
 
-
       <ModalMensagem
         aberto={modalAberto}
         mensagem={modalMensagem}
@@ -257,14 +250,14 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
         onClose={fecharModalMensagem}
       />
 
-    
-      <ModalConfirmacao
+<ModalConfirmacao
         aberto={confirmAberto}
         mensagem="Tem certeza que deseja excluir este endereço?"
         onConfirm={confirmarDelete}
         onCancel={cancelarDelete}
       />
     </>
+    
   );
 };
 

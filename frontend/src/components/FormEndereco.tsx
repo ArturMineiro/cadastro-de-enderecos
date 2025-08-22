@@ -1,20 +1,16 @@
-
 import React, { useState, useEffect } from "react";
-import api from '../services/api';
-import apiCep from '../services/apiCep';
+import { createEndereco } from "../services/api";
+import apiCep from "../services/apiCep";
 import ModalMensagem from "./ModalMensagem";
 import type { Endereco } from "../types/Endereco";
 import { enderecoSchema, validarCPF } from "../schemas/enderecoSchema";
 import { ZodError } from "zod";
-import { formatCEP, formatCPF } from "../utils/formatters"; 
+import { formatCEP, formatCPF } from "../utils/formatters";
 
 interface FormEnderecoProps {
   onSaved: () => void;
   enderecoInicial?: Endereco;
 }
-
-
-
 
 const FormEndereco: React.FC<FormEnderecoProps> = ({ onSaved, enderecoInicial }) => {
   const [form, setForm] = useState<Endereco>({
@@ -47,19 +43,17 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ onSaved, enderecoInicial })
     setModalAberto(true);
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
 
-const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const { name, value } = e.target;
+    if (name === "nome" && value.length > 30) return;
 
-  if (name === "nome" && value.length > 30) return; 
-
-  setForm(prev => ({ ...prev, [name]: value }));
-  setErrors(prev => ({ ...prev, [name]: "" }));
-};
-
+    setForm(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: "" }));
+  };
 
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    let valor = formatCEP(e.target.value);
+    const valor = formatCEP(e.target.value);
     setForm(prev => ({ ...prev, cep: valor }));
 
     const cepLimpo = valor.replace(/\D/g, "");
@@ -92,8 +86,9 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valorFormatado = formatCPF(e.target.value);
     setForm(prev => ({ ...prev, cpf: valorFormatado }));
 
-    if (valorFormatado.replace(/\D/g, "").length === 11) {
-      if (!validarCPF(valorFormatado)) {
+    const cpfLimpo = valorFormatado.replace(/\D/g, "");
+    if (cpfLimpo.length === 11) {
+      if (!validarCPF(cpfLimpo)) {
         setErrors(prev => ({ ...prev, cpf: "CPF inválido" }));
       } else {
         setErrors(prev => ({ ...prev, cpf: "" }));
@@ -103,60 +98,48 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     }
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const parsed = enderecoSchema.parse(form);
 
-  try {
-    const parsed = enderecoSchema.parse(form);
+      setErrors({});
+      setLoading(true);
 
-    setErrors({});
-    setLoading(true);
+      await createEndereco(parsed); 
 
-    const payload = {
-      ...parsed,
-      cpf: parsed.cpf,
-      cep: parsed.cep, 
-    };
+      abrirModalMensagem("Endereço salvo com sucesso!", "sucesso");
+      onSaved();
 
-    await api.post("", payload);
-
-    abrirModalMensagem("Endereço salvo com sucesso!", "sucesso");
-    onSaved();
-
-    setForm({
-      id: 0,
-      nome: "",
-      cpf: "",
-      cep: "",
-      logradouro: "",
-      bairro: "",
-      cidade: "",
-      estado: "",
-    });
-  } catch (err: any) {
-    if (err instanceof ZodError) {
-      const fieldErrors = err.flatten().fieldErrors as Record<string, (string | undefined)[]>;
-
-      const formattedErrors: { [key: string]: string } = {};
-
-      for (const key in fieldErrors) {
-        if (fieldErrors[key]?.[0]) {
-          formattedErrors[key] = fieldErrors[key]![0]!;
+      setForm({
+        id: 0,
+        nome: "",
+        cpf: "",
+        cep: "",
+        logradouro: "",
+        bairro: "",
+        cidade: "",
+        estado: "",
+      });
+    } catch (err: any) {
+      if (err instanceof ZodError) {
+        const fieldErrors = err.flatten().fieldErrors as Record<string, (string | undefined)[]>;
+        const formattedErrors: Record<string, string> = {};
+        for (const key in fieldErrors) {
+          if (fieldErrors[key]?.[0]) formattedErrors[key] = fieldErrors[key]![0]!;
         }
+        setErrors(formattedErrors);
+      } else if (err.response?.status === 400 && err.response.data === "Já existe um usuário com este CPF.") {
+        setErrors(prev => ({ ...prev, cpf: "CPF já cadastrado" }));
+        abrirModalMensagem("CPF já cadastrado", "erro");
+      } else {
+        console.error("Erro ao salvar:", err);
+        abrirModalMensagem("Erro ao salvar endereço", "erro");
       }
-      setErrors(formattedErrors);
-    } else if (err.response?.status === 400 && err.response.data === "Já existe um usuário com este CPF.") {
-      setErrors(prev => ({ ...prev, cpf: "CPF já cadastrado" }));
-      abrirModalMensagem("CPF já cadastrado", "erro");
-}else {
-      console.error("Erro ao salvar:", err);
-      abrirModalMensagem("Erro ao salvar endereço", "erro");
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -207,67 +190,24 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Logradouro</label>
-            <input
-              name="logradouro"
-              type="text"
-              value={form.logradouro}
-              onChange={handleChange}
-              
-              readOnly={!!form.logradouro} 
-
-              className={`mt-1 block w-full rounded-md border ${
-                errors.logradouro ? "border-red-500" : "border-gray-300"
-              } shadow-sm px-3 py-2 focus:ring focus:ring-indigo-200 dark:bg-gray-700 dark:border-gray-600`}
-            />
-            {errors.logradouro && <p className="text-red-500 text-sm mt-1">{errors.logradouro}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Bairro</label>
-            <input
-              name="bairro"
-              type="text"
-              value={form.bairro}
-              onChange={handleChange}
-              readOnly={!!form.bairro} 
-              className={`mt-1 block w-full rounded-md border ${
-                errors.bairro ? "border-red-500" : "border-gray-300"
-              } shadow-sm px-3 py-2 focus:ring focus:ring-indigo-200 dark:bg-gray-700 dark:border-gray-600`}
-            />
-            {errors.bairro && <p className="text-red-500 text-sm mt-1">{errors.bairro}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Cidade</label>
-            <input
-              name="cidade"
-              type="text"
-              value={form.cidade}
-              readOnly={!!form.cidade}
-              onChange={handleChange}
-              className={`mt-1 block w-full rounded-md border ${
-                errors.cidade ? "border-red-500" : "border-gray-300"
-              } shadow-sm px-3 py-2 focus:ring focus:ring-indigo-200 dark:bg-gray-700 dark:border-gray-600`}
-            />
-            {errors.cidade && <p className="text-red-500 text-sm mt-1">{errors.cidade}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Estado</label>
-            <input
-              name="estado"
-              type="text"
-              value={form.estado}
-              readOnly={!!form.estado} 
-              onChange={handleChange}
-              className={`mt-1 block w-full rounded-md border ${
-                errors.estado ? "border-red-500" : "border-gray-300"
-              } shadow-sm px-3 py-2 focus:ring focus:ring-indigo-200 dark:bg-gray-700 dark:border-gray-600`}
-            />
-            {errors.estado && <p className="text-red-500 text-sm mt-1">{errors.estado}</p>}
-          </div>
+          {["logradouro", "bairro", "cidade", "estado"].map(field => (
+            <div key={field}>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                {field.charAt(0).toUpperCase() + field.slice(1)}
+              </label>
+              <input
+                name={field}
+                type="text"
+                value={(form as any)[field]}
+                onChange={handleChange}
+                readOnly={!!(form as any)[field]}
+                className={`mt-1 block w-full rounded-md border ${
+                  errors[field] ? "border-red-500" : "border-gray-300"
+                } shadow-sm px-3 py-2 focus:ring focus:ring-indigo-200 dark:bg-gray-700 dark:border-gray-600`}
+              />
+              {errors[field] && <p className="text-red-500 text-sm mt-1">{errors[field]}</p>}
+            </div>
+          ))}
         </div>
 
         <button
