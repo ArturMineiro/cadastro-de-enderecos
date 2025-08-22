@@ -1,4 +1,3 @@
-version: "3.9"
 
 services:
   # db:
@@ -27,8 +26,7 @@ services:
         SPRING_DATASOURCE_URL: jdbc:postgresql://1.0.90.90:5432/desafio_user
         SPRING_DATASOURCE_USERNAME: postgres
         SPRING_DATASOURCE_PASSWORD: ""  # senha vazia, ou a senha real se houver
-      networks:
-        - app-network
+
 #local
   # backend:
   #     build: ./backend
@@ -52,9 +50,3 @@ services:
       - "5173:80"
     depends_on:
       - backend
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
