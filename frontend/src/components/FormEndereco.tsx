@@ -141,8 +141,8 @@ const handleSubmit = async (e: React.FormEvent) => {
       }
       setErrors(formattedErrors);
     } else if (err.response?.status === 400 && err.response.data === "Já existe um usuário com este CPF.") {
-    setErrors(prev => ({ ...prev, cpf: "CPF já cadastrado" }));
-    abrirModalMensagem("CPF já cadastrado", "erro");
+      setErrors(prev => ({ ...prev, cpf: "CPF já cadastrado" }));
+      abrirModalMensagem("CPF já cadastrado", "erro");
 }else {
       console.error("Erro ao salvar:", err);
       abrirModalMensagem("Erro ao salvar endereço", "erro");

@@ -66,9 +66,9 @@ const ModalMensagem: React.FC<ModalMensagemProps> = ({
   if (!aberto) return null;
 
   return (
-    <div className="fixed inset-0 z-40  bg-opacity-40 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] bg-opacity-40 flex items-center justify-center p-4">
       <div
-        className={`max-w-md w-full rounded-lg border ${cores[tipo]} shadow-lg p-6 animate-fadeInUp`}
+        className={`max-w-md w-full rounded-lg border ${cores[tipo]} shadow-xl p-6 animate-fadeInUp relative z-[10000]`}
         role="alert"
       >
         <div className="flex items-center gap-3 mb-4">
@@ -77,14 +77,12 @@ const ModalMensagem: React.FC<ModalMensagemProps> = ({
         </div>
         <p className="text-gray-900 mb-6">{mensagem}</p>
         <div className="flex justify-end">
-        <button
-  onClick={onClose}
-  style={{ backgroundColor: "#4F46E5", color: "#fff" }}
-  className="inline-block px-5 py-2 font-semibold rounded hover:bg-indigo-700 transition"
->
-  OK
-</button>
-
+          <button
+            onClick={onClose}
+            className="inline-block px-5 py-2 font-semibold rounded bg-indigo-600 text-white hover:bg-indigo-700 transition"
+          >
+            OK
+          </button>
         </div>
       </div>
     </div>

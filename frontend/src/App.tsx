@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import './index.css'; // <- importante para ativar Tailwind
+import './index.css'; 
 
 import Home from "./pages/Home";
 import Enderecos from "./pages/Enderecos";

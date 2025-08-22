@@ -140,32 +140,38 @@ export default function EditarEndereco({
     try {
       setLoading(true);
       await api.put(`/${endereco.id}`, formCompleto);
-
+    
       setErrors({});
       setCpfError("");
       onUpdated();
       abrirModalMensagem("Endereço atualizado com sucesso!", "sucesso");
     } catch (error: any) {
+      // Mensagem padrão
       let msg = "Erro ao atualizar endereço.";
-
-      // Tratamento CPF duplicado
+    
+      // Verifica se o erro é de CPF duplicado
       if (
         error?.response?.status === 400 &&
-        ((typeof error.response.data === "string" &&
-          error.response.data.includes("CPF")) ||
-         (error.response.data?.message &&
-          error.response.data.message.includes("CPF")))
+        ((typeof error.response.data === "string" && error.response.data.includes("CPF")) ||
+          (error.response.data?.message && error.response.data.message.includes("CPF")))
       ) {
         setErrors(prev => ({ ...prev, cpf: "CPF já cadastrado" }));
-        msg = "CPF já cadastrado";
-      } else if (error?.response?.data && typeof error.response.data === "string") {
-        msg = error.response.data;
+        abrirModalMensagem("CPF já cadastrado", "erro");
+        return; // Para o fluxo, não precisa mostrar msg genérica
       }
-
+    
+      // Caso seja outro erro
+      if (error?.response?.data && typeof error.response.data === "string") {
+        msg = error.response.data;
+      } else if (error?.response?.data?.message) {
+        msg = error.response.data.message;
+      }
+    
       abrirModalMensagem(msg, "erro");
     } finally {
       setLoading(false);
     }
+    
   }
 
   return (

@@ -10,15 +10,24 @@ interface ListaEnderecosProps {
   atualizar?: boolean;
 }
 
+const ITEMS_PER_PAGE = 5;
+
 const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
   const queryClient = useQueryClient();
-  const { data: enderecos, isLoading, isError } = useQuery<Endereco[]>({
+  const { data: enderecos = [], isLoading, isError } = useQuery<Endereco[]>({
     queryKey: ["enderecos", atualizar],
     queryFn: async () => {
       const res = await api.get("");
       return res.data;
     },
   });
+
+  const [paginaAtual, setPaginaAtual] = useState(1);
+
+  const totalPaginas = Math.ceil(enderecos.length / ITEMS_PER_PAGE);
+  const indexInicio = (paginaAtual - 1) * ITEMS_PER_PAGE;
+  const indexFim = indexInicio + ITEMS_PER_PAGE;
+  const enderecosPaginados = enderecos.slice(indexInicio, indexFim);
 
   const [openActionId, setOpenActionId] = useState<number | null>(null);
   const [editando, setEditando] = useState<Endereco | null>(null);
@@ -65,7 +74,6 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
     setModalTipo(tipo);
     setModalAberto(true);
   };
-  
 
   const fecharModalMensagem = () => setModalAberto(false);
 
@@ -87,7 +95,7 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
     setOpenActionId(null);
   };
 
-  // Botão Excluir agora abre o modal de confirmação
+  // Botão Excluir modal
   const handleDelete = (id: number) => {
     solicitarDelete(id);
   };
@@ -100,23 +108,23 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
   return (
     <>
       <div className="space-y-4 relative">
-        <div className="hidden md:block">
-          {enderecos && enderecos.length > 0 ? (
+        {/* Tabela Desktop */}
+        <div className="hidden md:block overflow-x-auto">
+          {enderecosPaginados.length > 0 ? (
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead>
-  <tr>
-    <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">Nome</th>
-    <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">CPF</th>
-    <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">CEP</th>
-    <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">Endereço</th>
-    <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">Ações</th>
-  </tr>
-</thead>
-
-<tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 text-gray-900 dark:text-white">
-                {enderecos.map((e) => (
-                  <tr key={e.id} className="">
-<td className="px-4 py-2 text-gray-900 dark:text-white">{e.nome}</td>
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">Nome</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">CPF</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">CEP</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">Endereço</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 text-gray-900 dark:text-white">
+                {enderecosPaginados.map((e) => (
+                  <tr key={e.id}>
+                    <td className="px-4 py-2">{e.nome}</td>
                     <td className="px-4 py-2">{e.cpf}</td>
                     <td className="px-4 py-2">{e.cep}</td>
                     <td className="px-4 py-2">{`${e.logradouro}, ${e.bairro}, ${e.cidade} - ${e.estado}`}</td>
@@ -153,19 +161,21 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
           )}
         </div>
 
-        {/* Cards mobile */}
-        <div className="md:hidden space-y-4">
-          {enderecos && enderecos.length > 0 ? (
-            enderecos.map((e) => (
+        {/* Cards Mobile */}
+        <div className="md:hidden space-y-4 overflow-y-auto">
+          {enderecosPaginados.length > 0 ? (
+            enderecosPaginados.map((e) => (
               <div
-              key={e.id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white mt-3"
-            >
-            
+                key={e.id}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white mt-3 max-w-full"
+              >
                 <p><strong>Nome:</strong> {e.nome}</p>
                 <p><strong>CPF:</strong> {e.cpf}</p>
                 <p><strong>CEP:</strong> {e.cep}</p>
-                <p><strong>Endereço:</strong> {`${e.logradouro}, ${e.bairro}, ${e.cidade} - ${e.estado}`}</p>
+                <p className="break-words whitespace-normal">
+                  <strong>Endereço:</strong> {`${e.logradouro}, ${e.bairro}, ${e.cidade} - ${e.estado}`}
+                </p>
+
                 <div className="relative mt-2">
                   <button
                     onClick={() => handleActionClick(e.id)}
@@ -197,26 +207,49 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
           )}
         </div>
 
+        {/* Paginação */}
+        {totalPaginas > 1 && (
+          <div className="flex justify-center items-center gap-3 mt-4">
+            <button
+              onClick={() => setPaginaAtual((p) => Math.max(p - 1, 1))}
+              disabled={paginaAtual === 1}
+              className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50"
+            >
+              Anterior
+            </button>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Página {paginaAtual} de {totalPaginas}
+            </span>
+            <button
+              onClick={() => setPaginaAtual((p) => Math.min(p + 1, totalPaginas))}
+              disabled={paginaAtual === totalPaginas}
+              className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50"
+            >
+              Próxima
+            </button>
+          </div>
+        )}
+
         {/* Modal de edição */}
         {editando && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center  bg-opacity-50">
-    <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-full max-w-lg relative">
-            <EditarEndereco
-              endereco={editando}
-              onUpdated={() => {
-                queryClient.invalidateQueries({ queryKey: ["enderecos"] });
-                fecharModal();
-                abrirModalMensagem("Endereço atualizado com sucesso!", "sucesso");
-              }}
-              onCancel={fecharModal}
-              abrirModalMensagem={abrirModalMensagem}
-            />
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-full max-w-lg relative">
+              <EditarEndereco
+                endereco={editando}
+                onUpdated={() => {
+                  queryClient.invalidateQueries({ queryKey: ["enderecos"] });
+                  fecharModal();
+                  abrirModalMensagem("Endereço atualizado com sucesso!", "sucesso");
+                }}
+                onCancel={fecharModal}
+                abrirModalMensagem={abrirModalMensagem}
+              />
             </div>
           </div>
         )}
       </div>
 
-      {/* Modal de mensagem */}
+
       <ModalMensagem
         aberto={modalAberto}
         mensagem={modalMensagem}
@@ -224,7 +257,7 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
         onClose={fecharModalMensagem}
       />
 
-      {/* Modal de confirmação */}
+    
       <ModalConfirmacao
         aberto={confirmAberto}
         mensagem="Tem certeza que deseja excluir este endereço?"
