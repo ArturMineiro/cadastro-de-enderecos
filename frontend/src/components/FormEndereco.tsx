@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { createEndereco } from "../services/api";
-import apiCep from "../services/apiCep";
+import { createEndereco, fetchCep } from "../services/api";
 import ModalMensagem from "./ModalMensagem";
 import type { Endereco } from "../types/Endereco";
 import { enderecoSchema, validarCPF } from "../schemas/enderecoSchema";
@@ -55,11 +54,11 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ onSaved, enderecoInicial })
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const valor = formatCEP(e.target.value);
     setForm(prev => ({ ...prev, cep: valor }));
-
+  
     const cepLimpo = valor.replace(/\D/g, "");
     if (cepLimpo.length === 8) {
       try {
-        const { data } = await apiCep.get(`/${cepLimpo}`);
+        const data = await fetchCep(cepLimpo); // sem ".get" aqui
         if (!data.erro) {
           setForm(prev => ({
             ...prev,
@@ -71,13 +70,26 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ onSaved, enderecoInicial })
           setErrors(prev => ({ ...prev, cep: "" }));
         } else {
           setErrors(prev => ({ ...prev, cep: "CEP não encontrado" }));
-          setForm(prev => ({ ...prev, logradouro: "", bairro: "", cidade: "", estado: "" }));
+          setForm(prev => ({
+            ...prev,
+            logradouro: "",
+            bairro: "",
+            cidade: "",
+            estado: "",
+          }));
         }
-      } catch {
+      } catch (err) {
         setErrors(prev => ({ ...prev, cep: "Erro ao buscar CEP" }));
       }
     } else {
-      setForm(prev => ({ ...prev, logradouro: "", bairro: "", cidade: "", estado: "" }));
+      // Limpa os campos de endereço se o CEP não tiver 8 dígitos
+      setForm(prev => ({
+        ...prev,
+        logradouro: "",
+        bairro: "",
+        cidade: "",
+        estado: "",
+      }));
       setErrors(prev => ({ ...prev, cep: "" }));
     }
   };
