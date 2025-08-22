@@ -71,7 +71,6 @@ export default function EditarEndereco({
       setCpfError("");
     }
 
-    // Limpa erro de backend se o usuário estiver editando
     setErrors(prev => ({ ...prev, cpf: "" }));
   }
 
@@ -121,7 +120,7 @@ export default function EditarEndereco({
       cep: form.cep,
     };
 
-    // Validação frontend
+    // validando frontend
     if (cpfRaw.length !== 11 || !validarCPF(cpfRaw)) {
       setCpfError("CPF inválido");
       abrirModalMensagem("CPF inválido", "erro");
@@ -146,10 +145,8 @@ export default function EditarEndereco({
       onUpdated();
       abrirModalMensagem("Endereço atualizado com sucesso!", "sucesso");
     } catch (error: any) {
-      // Mensagem padrão
       let msg = "Erro ao atualizar endereço.";
     
-      // Verifica se o erro é de CPF duplicado
       if (
         error?.response?.status === 400 &&
         ((typeof error.response.data === "string" && error.response.data.includes("CPF")) ||
@@ -157,10 +154,9 @@ export default function EditarEndereco({
       ) {
         setErrors(prev => ({ ...prev, cpf: "CPF já cadastrado" }));
         abrirModalMensagem("CPF já cadastrado", "erro");
-        return; // Para o fluxo, não precisa mostrar msg genérica
+        return;
       }
     
-      // Caso seja outro erro
       if (error?.response?.data && typeof error.response.data === "string") {
         msg = error.response.data;
       } else if (error?.response?.data?.message) {

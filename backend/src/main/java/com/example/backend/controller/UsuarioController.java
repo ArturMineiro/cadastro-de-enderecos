@@ -44,12 +44,10 @@ public class UsuarioController {
         }
     
         return service.findById(id).map(existing -> {
-            // Verifica se o CPF já existe em outro registro
             if (service.existsByCpfAndIdNot(usuario.getCpf(), id)) {
                 return ResponseEntity.badRequest().body("Já existe um usuário com este CPF.");
             }
     
-            // Atualiza os dados do usuário existente
             existing.setNome(usuario.getNome());
             existing.setCpf(usuario.getCpf());
             existing.setCep(usuario.getCep());

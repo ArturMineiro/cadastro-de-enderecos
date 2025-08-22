@@ -1,4 +1,3 @@
-// src/services/apiCep.ts
 import axios from 'axios';
 
 const apiCep = axios.create({

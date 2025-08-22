@@ -72,4 +72,27 @@ Gradle – Gerenciador de build
 PostgreSQL – Banco de dados relacional
 
 TELAS  : 
+# Meu Projeto
 
+## Telas do Sistema
+
+### Tela Inicial
+![Home](home.png)
+
+### Lista de Endereços
+![Listagem de Endereços](listagem-endereco.png)
+
+### Tela de Endereços
+![Tela de Endereços](tela-enderecos.png)
+
+### Modal de Edição
+![Editar Endereço](modal-editar.png)
+
+### Mensagem de Sucesso
+![Mensagem de Sucesso](mensagem-de-sucesso.png)
+
+### Responsividade
+![Responsividade](resposividade.png)
+
+### Confirmação
+![Confirmação](confirmacao.png)

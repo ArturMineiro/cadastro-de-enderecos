@@ -109,8 +109,8 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     const payload = {
       ...parsed,
-      cpf: parsed.cpf, // já vem com máscara
-      cep: parsed.cep, // já vem com máscara
+      cpf: parsed.cpf,
+      cep: parsed.cep, 
     };
 
     await api.post("", payload);
