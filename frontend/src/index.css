@@ -18,3 +18,33 @@ html, body, #root {
   * {
     box-sizing: border-box;
   }
+
+  @layer components {
+    /* Autofill - modo claro */
+    input:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0px 1000px #f9fafb inset; 
+      -webkit-text-fill-color: #000000; 
+      transition: background-color 5000s ease-in-out 0s;
+    }
+  
+    /* Autofill - modo escuro */
+    .dark input:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0px 1000px #1f2937 inset; 
+      -webkit-text-fill-color: #f9fafb; 
+      transition: background-color 5000s ease-in-out 0s;
+    }
+  
+    /* Firefox */
+    input:-moz-autofill {
+      box-shadow: 0 0 0px 1000px #f9fafb inset;
+      -moz-text-fill-color: #000000;
+    }
+  
+    .dark input:-moz-autofill {
+      box-shadow: 0 0 0px 1000px #1f2937 inset;
+      -moz-text-fill-color: #f9fafb;
+    }
+  }
+  
+  
+  
