@@ -6,7 +6,7 @@ import ModalMensagem from "./ModalMensagem";
 import type { Endereco } from "../types/Endereco";
 import { enderecoSchema, validarCPF } from "../schemas/enderecoSchema";
 import { ZodError } from "zod";
-import { formatCEP, formatCPF } from "../libs/utils/formatters"; 
+import { formatCEP, formatCPF } from "../utils/formatters"; 
 
 interface FormEnderecoProps {
   onSaved: () => void;

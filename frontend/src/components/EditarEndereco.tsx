@@ -4,7 +4,7 @@ import apiCep from "../services/apiCep";
 import { enderecoSchema, validarCPF } from "../schemas/enderecoSchema";
 import type { EnderecoFormData } from "../schemas/enderecoSchema";
 import type { Endereco } from "../types/Endereco";
-import { formatCPF, formatCEP } from "../libs/utils/formatters";
+import { formatCPF, formatCEP } from "../utils/formatters";
 
 interface Props {
   endereco: Endereco;
