@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { createEndereco, fetchCep } from "../services/api";
+import { createEndereco, fetchCep } from "../services/enderecoService";
 import ModalMensagem from "./ModalMensagem";
 import type { Endereco } from "../types/Endereco";
 import { enderecoSchema, validarCPF } from "../schemas/enderecoSchema";

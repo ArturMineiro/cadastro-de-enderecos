@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { enderecoSchema, validarCPF, type EnderecoFormData } from "../schemas/enderecoSchema";
 import type { Endereco } from "../types/Endereco";
 import { formatCPF, formatCEP } from "../utils/formatters";
-import { updateEndereco, fetchCep } from "../services/api";
+import { updateEndereco, fetchCep } from "../services/enderecoService";
 
 interface Props {
   endereco: Endereco;

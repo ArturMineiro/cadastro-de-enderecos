@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchEnderecos, deleteEndereco } from "../services/api";
+import { fetchEnderecos, deleteEndereco } from "../services/enderecoService.ts";
 import EditarEndereco from "./EditarEndereco";
 import ModalMensagem from "./ModalMensagem";
 import ModalConfirmacao from "./ModalConfirmacao";
