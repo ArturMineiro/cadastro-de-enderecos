@@ -77,24 +77,22 @@ TELAS  :
 ## Telas do Sistema
 
 ### Tela Inicial
-![Home](home.png)
+![Home](screenshots/home.png)
 
 ### Lista de Endereços
-![Listagem de Endereços](listagem-endereco.png)
+![Listagem de Endereços](screenshots/listagem-endereco.png)
 
 ### Tela de Endereços
-![Tela de Endereços](tela-enderecos.png)
+![Tela de Endereços](screenshots/tela-enderecos.png)
 
 ### Modal de Edição
-![Editar Endereço](modal-editar.png)
+![Editar Endereço](screenshots/modal-editar.png)
 
 ### Mensagem de Sucesso
-![Mensagem de Sucesso](mensagem-de-sucesso.png)
+![Mensagem de Sucesso](screenshots/mensagem-de-sucesso.png)
 
 ### Responsividade
-![Responsividade](screenshots/fotos/resposividade.png)
+![Responsividade](screenshots/resposividade.png)
 
 ### Confirmação
-![Confirmação](screenshots/fotos/confirmacao.png)
-
-
+![Confirmação](screenshots/confirmacao.png)
