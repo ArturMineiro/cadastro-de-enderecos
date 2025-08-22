@@ -92,7 +92,9 @@ TELAS  :
 ![Mensagem de Sucesso](mensagem-de-sucesso.png)
 
 ### Responsividade
-![Responsividade](resposividade.png)
+![Responsividade](screenshots/fotos/resposividade.png)
 
 ### Confirmação
-![Confirmação](confirmacao.png)
+![Confirmação](screenshots/fotos/confirmacao.png)
+
+
