@@ -4,7 +4,10 @@ import com.example.backend.model.Usuario;
 import com.example.backend.service.UsuarioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.backend.dto.UsuarioRequestDTO;
+import com.example.backend.dto.UsuarioResponseDTO;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -17,50 +20,52 @@ public class UsuarioController {
         this.service = service;
     }
 
-    @PostMapping
-    public ResponseEntity<?> createUsuario(@RequestBody Usuario usuario) {
-        if (service.existsByCpf(usuario.getCpf())) {
-            return ResponseEntity.badRequest().body("Já existe um usuário com este CPF.");
-        }
-        Usuario saved = service.save(usuario);
-        return ResponseEntity.ok(saved);
+  @PostMapping
+public ResponseEntity<?> createUsuario(@Valid @RequestBody UsuarioRequestDTO dto) {
+    if (service.existsByCpf(dto.getCpf())) {
+        return ResponseEntity.badRequest().body("Já existe um usuário com este CPF.");
     }
+
+    Usuario usuario = new Usuario();
+    usuario.setNome(dto.getNome());
+    usuario.setCpf(dto.getCpf());
+    usuario.setCep(dto.getCep());
+    usuario.setLogradouro(dto.getLogradouro());
+    usuario.setBairro(dto.getBairro());
+    usuario.setCidade(dto.getCidade());
+    usuario.setEstado(dto.getEstado());
+
+    Usuario saved = service.save(usuario);
+
+    return ResponseEntity.ok(new UsuarioResponseDTO(saved));
+}
+
     
     @GetMapping
     public List<Usuario> getAllUsuarios() {
         return service.findAll();
     }
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
-        // Validação dos campos obrigatórios
-        if (usuario.getNome() == null || usuario.getNome().isBlank() ||
-            usuario.getCpf() == null || usuario.getCpf().isBlank() ||
-            usuario.getCep() == null || usuario.getCep().isBlank() ||
-            usuario.getLogradouro() == null || usuario.getLogradouro().isBlank() ||
-            usuario.getBairro() == null || usuario.getBairro().isBlank() ||
-            usuario.getCidade() == null || usuario.getCidade().isBlank() ||
-            usuario.getEstado() == null || usuario.getEstado().isBlank()) {
-            return ResponseEntity.badRequest().body("Preencha todos os campos obrigatórios.");
+  @PutMapping("/{id}")
+public ResponseEntity<?> updateUsuario(@PathVariable Long id, @Valid @RequestBody UsuarioRequestDTO dto) {
+    return service.findById(id).map(existing -> {
+        if (service.existsByCpfAndIdNot(dto.getCpf(), id)) {
+            return ResponseEntity.badRequest().body("Já existe um usuário com este CPF.");
         }
-    
-        return service.findById(id).map(existing -> {
-            if (service.existsByCpfAndIdNot(usuario.getCpf(), id)) {
-                return ResponseEntity.badRequest().body("Já existe um usuário com este CPF.");
-            }
-    
-            existing.setNome(usuario.getNome());
-            existing.setCpf(usuario.getCpf());
-            existing.setCep(usuario.getCep());
-            existing.setLogradouro(usuario.getLogradouro());
-            existing.setBairro(usuario.getBairro());
-            existing.setCidade(usuario.getCidade());
-            existing.setEstado(usuario.getEstado());
-    
-            Usuario updated = service.save(existing);
-            return ResponseEntity.ok(updated);
-        }).orElse(ResponseEntity.notFound().build());
-    }
-    
+
+        existing.setNome(dto.getNome());
+        existing.setCpf(dto.getCpf());
+        existing.setCep(dto.getCep());
+        existing.setLogradouro(dto.getLogradouro());
+        existing.setBairro(dto.getBairro());
+        existing.setCidade(dto.getCidade());
+        existing.setEstado(dto.getEstado());
+        existing.setDataAtualizacao(java.time.LocalDateTime.now());
+
+        Usuario updated = service.save(existing);
+        return ResponseEntity.ok(new UsuarioResponseDTO(updated));
+    }).orElse(ResponseEntity.notFound().build());
+}
+
     
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUsuario(@PathVariable Long id) {
