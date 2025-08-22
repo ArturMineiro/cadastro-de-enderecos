@@ -47,11 +47,16 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ onSaved, enderecoInicial })
     setModalAberto(true);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: "" }));
-  };
+
+const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, value } = e.target;
+
+  if (name === "nome" && value.length > 30) return; 
+
+  setForm(prev => ({ ...prev, [name]: value }));
+  setErrors(prev => ({ ...prev, [name]: "" }));
+};
+
 
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     let valor = formatCEP(e.target.value);
@@ -209,6 +214,9 @@ const handleSubmit = async (e: React.FormEvent) => {
               type="text"
               value={form.logradouro}
               onChange={handleChange}
+              
+              readOnly={!!form.logradouro} 
+
               className={`mt-1 block w-full rounded-md border ${
                 errors.logradouro ? "border-red-500" : "border-gray-300"
               } shadow-sm px-3 py-2 focus:ring focus:ring-indigo-200 dark:bg-gray-700 dark:border-gray-600`}
@@ -223,6 +231,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               type="text"
               value={form.bairro}
               onChange={handleChange}
+              readOnly={!!form.bairro} 
               className={`mt-1 block w-full rounded-md border ${
                 errors.bairro ? "border-red-500" : "border-gray-300"
               } shadow-sm px-3 py-2 focus:ring focus:ring-indigo-200 dark:bg-gray-700 dark:border-gray-600`}
@@ -236,6 +245,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               name="cidade"
               type="text"
               value={form.cidade}
+              readOnly={!!form.cidade}
               onChange={handleChange}
               className={`mt-1 block w-full rounded-md border ${
                 errors.cidade ? "border-red-500" : "border-gray-300"
@@ -250,6 +260,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               name="estado"
               type="text"
               value={form.estado}
+              readOnly={!!form.estado} 
               onChange={handleChange}
               className={`mt-1 block w-full rounded-md border ${
                 errors.estado ? "border-red-500" : "border-gray-300"

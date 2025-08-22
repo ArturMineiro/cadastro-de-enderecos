@@ -145,7 +145,7 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
                           </button>
                           <button
                             onClick={() => handleDelete(e.id)}
-                            className="block px-4 py-2 hover:bg-red-100 dark:hover:bg-red-600 w-full text-left text-red-600"
+                            className="block px-4 py-2 hover:bg-red-100 dark:hover:bg-red-600 w-full text-left text-white-600"
                           >
                             Excluir
                           </button>
