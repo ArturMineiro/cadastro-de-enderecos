@@ -15,7 +15,20 @@ services:
   #     test: ["CMD-SHELL", "pg_isready -U postgres"]
   #     interval: 5s
   #     retries: 5
-
+  db:
+    image: mysql:8
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: desafio_junior
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot"]
+      interval: 5s
+      retries: 5
   #banco hospedado
   backend:
       build: ./backend
