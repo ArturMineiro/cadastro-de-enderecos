@@ -1,20 +1,6 @@
+version: "3.9"
 
 services:
-  # db:
-  #   image: postgres:15
-  #   container_name: postgres
-  #   environment:
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: sua_senha_aqui
-  #     POSTGRES_DB: teste_junior
-  #   ports:
-  #     - "5432:5432"
-  #   networks:
-  #     - app-network
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
-  #     interval: 5s
-  #     retries: 5
   db:
     image: mysql:8
     container_name: mysql
@@ -23,38 +9,24 @@ services:
       MYSQL_DATABASE: desafio_junior
     ports:
       - "3306:3306"
-    networks:
-      - app-network
+
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot"]
       interval: 5s
       retries: 5
-  #banco hospedado
-  backend:
-      build: ./backend
-      container_name: backend
-      ports:
-        - "8080:8080"
-      environment:
-        SPRING_DATASOURCE_URL: jdbc:postgresql://1.0.90.90:5432/desafio_user
-        SPRING_DATASOURCE_USERNAME: postgres
-        SPRING_DATASOURCE_PASSWORD: ""  # senha vazia, ou a senha real se houver
 
-#local
-  # backend:
-  #     build: ./backend
-  #     container_name: backend
-  #     ports:
-  #       - "8080:8080"
-  #     environment:
-  #       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/desafio_user
-  #       SPRING_DATASOURCE_USERNAME: postgres
-  #       SPRING_DATASOURCE_PASSWORD: 
-  #     depends_on:
-  #       db:
-  #         condition: service_healthy
-  #     networks:
-  #       - app-network
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/desafio_junior?useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
