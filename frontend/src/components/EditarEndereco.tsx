@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { enderecoSchema, validarCPF, type EnderecoFormData } from "../schemas/enderecoSchema";
 import type { Endereco } from "../types/Endereco";
+import { useUpdateEndereco } from "../hooks/useEndereco";
 import { formatCPF, formatCEP } from "../utils/formatters";
-import { updateEndereco, fetchCep } from "../services/enderecoService";
+import { fetchCep } from "../services/enderecoService";
 
 interface Props {
   endereco: Endereco;
@@ -28,8 +29,10 @@ export default function EditarEndereco({
     cidade: "",
     estado: "",
   });
+
+  const updateMutation = useUpdateEndereco();
+
   const [cpfRaw, setCpfRaw] = useState(""); 
-  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [cpfError, setCpfError] = useState("");
 
@@ -60,11 +63,7 @@ export default function EditarEndereco({
     setCpfRaw(valorLimpo);
 
     if (valorLimpo.length === 11) {
-      if (!validarCPF(valorLimpo)) {
-        setCpfError("CPF inválido");
-      } else {
-        setCpfError("");
-      }
+      setCpfError(validarCPF(valorLimpo) ? "" : "CPF inválido");
     } else {
       setCpfError("");
     }
@@ -79,7 +78,7 @@ export default function EditarEndereco({
     const cepLimpo = valor.replace(/\D/g, "");
     if (cepLimpo.length === 8) {
       try {
-        const data = await fetchCep(cepLimpo); // ✅ Função centralizada
+        const data = await fetchCep(cepLimpo);
         if (!data.erro) {
           setForm(prev => ({
             ...prev,
@@ -114,7 +113,7 @@ export default function EditarEndereco({
   async function handleUpdate() {
     const formCompleto: EnderecoFormData = {
       ...form,
-      cpf: formatCPF(cpfRaw), 
+      cpf: formatCPF(cpfRaw),
       cep: form.cep,
     };
 
@@ -130,34 +129,36 @@ export default function EditarEndereco({
       return;
     }
 
-    try {
-      setLoading(true);
-      await updateEndereco({ id: endereco.id, ...formCompleto }); // ✅ Função centralizada
+    updateMutation.mutate(
+      { id: endereco.id, ...formCompleto },
+      {
+        onSuccess: () => {
+          setErrors({});
+          setCpfError("");
+          onUpdated();
+          abrirModalMensagem("Endereço atualizado com sucesso!", "sucesso");
+        },
+        onError: (error: unknown) => {
+          let msg = "Erro ao atualizar endereço.";
+          const err = error as any;
 
-      setErrors({});
-      setCpfError("");
-      onUpdated();
-      abrirModalMensagem("Endereço atualizado com sucesso!", "sucesso");
-    } catch (error: any) {
-      let msg = "Erro ao atualizar endereço.";
+          if (
+            err?.response?.status === 400 &&
+            ((typeof err.response.data === "string" && err.response.data.includes("CPF")) ||
+              (err.response.data?.message && err.response.data.message.includes("CPF")))
+          ) {
+            setErrors(prev => ({ ...prev, cpf: "CPF já cadastrado" }));
+            abrirModalMensagem("CPF já cadastrado", "erro");
+            return;
+          }
 
-      if (
-        error?.response?.status === 400 &&
-        ((typeof error.response.data === "string" && error.response.data.includes("CPF")) ||
-          (error.response.data?.message && error.response.data.message.includes("CPF")))
-      ) {
-        setErrors(prev => ({ ...prev, cpf: "CPF já cadastrado" }));
-        abrirModalMensagem("CPF já cadastrado", "erro");
-        return;
+          if (err?.response?.data && typeof err.response.data === "string") msg = err.response.data;
+          else if (err?.response?.data?.message) msg = err.response.data.message;
+
+          abrirModalMensagem(msg, "erro");
+        },
       }
-
-      if (error?.response?.data && typeof error.response.data === "string") msg = error.response.data;
-      else if (error?.response?.data?.message) msg = error.response.data.message;
-
-      abrirModalMensagem(msg, "erro");
-    } finally {
-      setLoading(false);
-    }
+    );
   }
 
   return (
@@ -232,10 +233,10 @@ export default function EditarEndereco({
         </button>
         <button
           onClick={handleUpdate}
-          disabled={loading}
+          disabled={updateMutation.isPending}
           className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
         >
-          {loading ? "Salvando..." : "Salvar"}
+          {updateMutation.isPending ? "Salvando..." : "Salvar"}
         </button>
       </div>
     </div>

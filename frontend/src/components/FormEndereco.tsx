@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { createEndereco, fetchCep } from "../services/enderecoService";
+import { fetchCep } from "../services/enderecoService";
 import ModalMensagem from "./ModalMensagem";
 import type { Endereco } from "../types/Endereco";
 import { enderecoSchema, validarCPF } from "../schemas/enderecoSchema";
 import { ZodError } from "zod";
 import { formatCEP, formatCPF } from "../utils/formatters";
+import { useCreateEndereco, useUpdateEndereco } from "../hooks/useEndereco.ts";
 
 interface FormEnderecoProps {
-  onSaved: () => void;
   enderecoInicial?: Endereco;
 }
 
-const FormEndereco: React.FC<FormEnderecoProps> = ({ onSaved, enderecoInicial }) => {
+const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial }) => {
   const [form, setForm] = useState<Endereco>({
     id: enderecoInicial?.id || 0,
     nome: enderecoInicial?.nome || "",
@@ -27,7 +27,10 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ onSaved, enderecoInicial })
   const [modalAberto, setModalAberto] = useState(false);
   const [modalMensagem, setModalMensagem] = useState("");
   const [modalTipo, setModalTipo] = useState<"sucesso" | "erro" | "info">("info");
-  const [loading, setLoading] = useState(false);
+
+  const createMut = useCreateEndereco();
+  const updateMut = useUpdateEndereco();
+  const loading = createMut.isPending || updateMut.isPending;
 
   useEffect(() => {
     if (modalAberto) {
@@ -44,9 +47,7 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ onSaved, enderecoInicial })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
     if (name === "nome" && value.length > 30) return;
-
     setForm(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
@@ -54,11 +55,11 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ onSaved, enderecoInicial })
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const valor = formatCEP(e.target.value);
     setForm(prev => ({ ...prev, cep: valor }));
-  
+
     const cepLimpo = valor.replace(/\D/g, "");
     if (cepLimpo.length === 8) {
       try {
-        const data = await fetchCep(cepLimpo); // sem ".get" aqui
+        const data = await fetchCep(cepLimpo);
         if (!data.erro) {
           setForm(prev => ({
             ...prev,
@@ -70,26 +71,13 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ onSaved, enderecoInicial })
           setErrors(prev => ({ ...prev, cep: "" }));
         } else {
           setErrors(prev => ({ ...prev, cep: "CEP não encontrado" }));
-          setForm(prev => ({
-            ...prev,
-            logradouro: "",
-            bairro: "",
-            cidade: "",
-            estado: "",
-          }));
+          setForm(prev => ({ ...prev, logradouro: "", bairro: "", cidade: "", estado: "" }));
         }
-      } catch (err) {
+      } catch {
         setErrors(prev => ({ ...prev, cep: "Erro ao buscar CEP" }));
       }
     } else {
-      // Limpa os campos de endereço se o CEP não tiver 8 dígitos
-      setForm(prev => ({
-        ...prev,
-        logradouro: "",
-        bairro: "",
-        cidade: "",
-        estado: "",
-      }));
+      setForm(prev => ({ ...prev, logradouro: "", bairro: "", cidade: "", estado: "" }));
       setErrors(prev => ({ ...prev, cep: "" }));
     }
   };
@@ -112,46 +100,39 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ onSaved, enderecoInicial })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       const parsed = enderecoSchema.parse(form);
-
       setErrors({});
-      setLoading(true);
 
-      await createEndereco(parsed); 
+      if (form.id && form.id > 0) {
+        await updateMut.mutateAsync(parsed as Endereco);
+        abrirModalMensagem("Endereço atualizado com sucesso!", "sucesso");
+      } else {
+        await createMut.mutateAsync(parsed as any);
+        abrirModalMensagem("Endereço salvo com sucesso!", "sucesso");
+        setForm({ id: 0, nome: "", cpf: "", cep: "", logradouro: "", bairro: "", cidade: "", estado: "" });
+      }
 
-      abrirModalMensagem("Endereço salvo com sucesso!", "sucesso");
-      onSaved();
-
-      setForm({
-        id: 0,
-        nome: "",
-        cpf: "",
-        cep: "",
-        logradouro: "",
-        bairro: "",
-        cidade: "",
-        estado: "",
-      });
     } catch (err: any) {
       if (err instanceof ZodError) {
         const fieldErrors = err.flatten().fieldErrors as Record<string, (string | undefined)[]>;
-        const formattedErrors: Record<string, string> = {};
+        const formatted: Record<string, string> = {};
         for (const key in fieldErrors) {
-          if (fieldErrors[key]?.[0]) formattedErrors[key] = fieldErrors[key]![0]!;
+          if (fieldErrors[key]?.[0]) formatted[key] = fieldErrors[key]![0]!;
         }
-        setErrors(formattedErrors);
-      } else if (err.response?.status === 400 && err.response.data === "Já existe um usuário com este CPF.") {
+        setErrors(formatted);
+      } else if (err?.response?.status === 400 && err.response?.data === "Já existe um usuário com este CPF.") {
         setErrors(prev => ({ ...prev, cpf: "CPF já cadastrado" }));
         abrirModalMensagem("CPF já cadastrado", "erro");
       } else {
         console.error("Erro ao salvar:", err);
         abrirModalMensagem("Erro ao salvar endereço", "erro");
       }
-    } finally {
-      setLoading(false);
     }
   };
+
+
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -225,9 +206,9 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ onSaved, enderecoInicial })
         <button
           type="submit"
           disabled={loading}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded-md transition-colors"
+          className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed text-white font-semibold px-6 py-2 rounded-md transition-colors"
         >
-          {loading ? "Salvando..." : "Salvar"}
+          {loading ? "Salvando..." : form.id ? "Atualizar" : "Salvar"}
         </button>
       </form>
 

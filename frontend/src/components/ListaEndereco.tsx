@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchEnderecos, deleteEndereco } from "../services/enderecoService.ts";
+import { useQuery, useQueryClient  } from "@tanstack/react-query";
+import { fetchEnderecos } from "../services/enderecoService.ts";
 import EditarEndereco from "./EditarEndereco";
 import ModalMensagem from "./ModalMensagem";
 import ModalConfirmacao from "./ModalConfirmacao";
 import type { Endereco } from "../types/Endereco";
+import { useDeleteEndereco } from "../hooks/useEndereco.ts";
 
 interface ListaEnderecosProps {
   atualizar?: boolean;
@@ -13,12 +14,12 @@ interface ListaEnderecosProps {
 const ITEMS_PER_PAGE = 4;
 
 const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
-  const queryClient = useQueryClient();
-
   const { data: enderecos = [], isLoading, isError } = useQuery<Endereco[]>({
     queryKey: ["enderecos", atualizar],
     queryFn: fetchEnderecos,
   });
+  const queryClient = useQueryClient()
+  const deleteMutation = useDeleteEndereco();
 
   const [paginaAtual, setPaginaAtual] = useState(1);
 
@@ -44,18 +45,20 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
     setConfirmAberto(true);
   };
 
-  const confirmarDelete = async () => {
+const confirmarDelete = async () => {
     if (idParaDeletar === null) return;
-    try {
-      await deleteEndereco(idParaDeletar);
-      queryClient.invalidateQueries({ queryKey: ["enderecos"] });
-      abrirModalMensagem("Endereço excluído com sucesso!", "sucesso");
-    } catch {
-      abrirModalMensagem("Erro ao excluir endereço.", "erro");
-    } finally {
-      setIdParaDeletar(null);
-      setConfirmAberto(false);
-    }
+    deleteMutation.mutate(idParaDeletar, {
+      onSuccess: () => {
+        abrirModalMensagem("Endereço excluído com sucesso!", "sucesso");
+      },
+      onError: () => {
+        abrirModalMensagem("Erro ao excluir endereço.", "erro");
+      },
+      onSettled: () => {
+        setIdParaDeletar(null);
+        setConfirmAberto(false);
+      },
+    });
   };
 
   const cancelarDelete = () => {
