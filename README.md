@@ -6,7 +6,7 @@ Frontend: React + Vite
 
 Backend: Java + Spring Boot
 
-Banco de dados: PostgreSQL
+Banco de dados: MySql
 
 Ele utiliza Docker para facilitar a execução local.
 
@@ -23,18 +23,15 @@ Acesso à internet para baixar imagens
 
 📁 Estrutura do Projeto
 desafio_junior/
-├── backend/       # Java + Spring Boot
-├── frontend/      # React + TypeScript (Vite)
+├── backend/ # Java + Spring Boot
+├── frontend/ # React + TypeScript (Vite)
 ├── docker-compose.yml
 
 🔧 Primeira execução com Docker
 
-
-
 📦 Build e execução completa:
 
 docker compose up -d --build
-
 
 Isso irá:
 
@@ -80,28 +77,36 @@ Gradle – Gerenciador de build
 
 PostgreSQL – Banco de dados relacionalal
 
-TELAS  : 
+TELAS :
+
 # Meu Projeto
 
 ## Telas do Sistema
 
 ### Tela Inicial
+
 ![Home](screenshots/home.png)
 
 ### Lista de Endereços
+
 ![Listagem de Endereços](screenshots/listagem-endereco.png)
 
 ### Tela de Endereços
+
 ![Tela de Endereços](screenshots/tela-enderecos.png)
 
 ### Modal de Edição
+
 ![Editar Endereço](screenshots/modal-editar.png)
 
 ### Mensagem de Sucesso
+
 ![Mensagem de Sucesso](screenshots/mensagem-de-sucesso.png)
 
 ### Responsividade
+
 ![Responsividade](screenshots/resposividade.png)
 
 ### Confirmação
+
 ![Confirmação](screenshots/confirmacao.png)
