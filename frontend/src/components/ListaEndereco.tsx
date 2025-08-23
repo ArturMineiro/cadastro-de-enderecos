@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient  } from "@tanstack/react-query";
 import { fetchEnderecos } from "../services/enderecoService.ts";
-import EditarEndereco from "./EditarEndereco";
 import ModalMensagem from "./ModalMensagem";
 import ModalConfirmacao from "./ModalConfirmacao";
 import type { Endereco } from "../types/Endereco";
 import { useDeleteEndereco } from "../hooks/useEndereco.ts";
+import FormEndereco from "./FormEndereco.tsx";
 
 interface ListaEnderecosProps {
   atualizar?: boolean;
@@ -227,23 +227,35 @@ const confirmarDelete = async () => {
           </div>
         )}
 
-        {/* Modal de edição */}
-        {editando && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-full max-w-lg relative">
-              <EditarEndereco
-                endereco={editando}
-                onUpdated={() => {
-                  queryClient.invalidateQueries({ queryKey: ["enderecos"] });
-                  fecharModal();
-                  abrirModalMensagem("Endereço atualizado com sucesso!", "sucesso");
-                }}
-                onCancel={fecharModal}
-                abrirModalMensagem={abrirModalMensagem}
-              />
-            </div>
-          </div>
-        )}
+     {/* Modal de edição */}
+{editando && (
+  <div 
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    onClick={fecharModal} 
+  >
+    <div 
+      className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-full max-w-lg mx-4 relative"
+      onClick={(e) => e.stopPropagation()} 
+    >
+      <button 
+        onClick={fecharModal} 
+        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-lg font-bold"
+      >
+        ✕
+      </button>
+
+      {/* Formulário de edição */}
+      <FormEndereco
+        enderecoInicial={editando}
+        onUpdated={() => {
+          queryClient.invalidateQueries({ queryKey: ["enderecos"] });
+          fecharModal();
+          abrirModalMensagem("Endereço atualizado com sucesso!", "sucesso");
+        }}
+      />
+    </div>
+  </div>
+)}
       </div>
 
       <ModalMensagem
