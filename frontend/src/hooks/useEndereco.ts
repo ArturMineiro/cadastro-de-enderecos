@@ -1,13 +1,15 @@
-// src/hooks/useEnderecos.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchEnderecos,
   createEndereco,
   updateEndereco,
   deleteEndereco,
+  fetchCep
 } from "../services/enderecoService";
 import type { Endereco } from "../types/Endereco";
 import type { EnderecoCreate } from "../types/EnderecoCreate";
+import type { CepResponse } from "../types/Cep";
+
 
 const keys = {
   all: ["enderecos"] as const,
@@ -60,3 +62,18 @@ export function useDeleteEndereco() {
     },
   });
 }
+
+//cep
+export const useCep = (cep: string) => {
+  const cepLimpo = cep.replace(/\D/g, "");
+  return useQuery<CepResponse, Error>({
+    queryKey: ["cep", cepLimpo],
+    queryFn: () => fetchCep(cepLimpo),
+    enabled: cepLimpo.length === 8, 
+  });
+};
+
+
+
+
+

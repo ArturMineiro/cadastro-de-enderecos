@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { fetchCep } from "../services/enderecoService";
 import ModalMensagem from "./ModalMensagem";
 import { enderecoSchema, validarCPF, type EnderecoFormData } from "../schemas/enderecoSchema";
-import { useCreateEndereco, useUpdateEndereco } from "../hooks/useEndereco";
+import { useCreateEndereco, useUpdateEndereco, useCep } from "../hooks/useEndereco";
 import { formatCEP, formatCPF } from "../utils/formatters";
 import { ZodError } from "zod";
 import type { Endereco } from "../types/Endereco";
@@ -32,16 +31,29 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onSaved, o
   const createMut = useCreateEndereco();
   const updateMut = useUpdateEndereco();
   const loading = createMut.isPending || updateMut.isPending;
+  const { data: cepData,  error } = useCep(form.cep.replace(/\D/g, ""));
 
-  useEffect(() => {
-    if (enderecoInicial) {
-      setForm({
-        ...enderecoInicial,
-        cpf: formatCPF(enderecoInicial.cpf),
-        cep: formatCEP(enderecoInicial.cep),
-      });
+//busca os dados atraves do cep
+useEffect(() => {
+  if (cepData) {
+    if (!cepData.erro) {
+      setForm(prev => ({
+        ...prev,
+        logradouro: cepData.logradouro,
+        bairro: cepData.bairro,
+        cidade: cepData.localidade,
+        estado: cepData.uf,
+      }));
+      setErrors(prev => ({ ...prev, cep: "" }));
+    } else {
+      setForm(prev => ({ ...prev, logradouro: "", bairro: "", cidade: "", estado: "" }));
+      setErrors(prev => ({ ...prev, cep: "CEP não encontrado" }));
     }
-  }, [enderecoInicial]);
+  } else if (error) {
+    setErrors(prev => ({ ...prev, cep: "Erro ao buscar CEP" }));
+  }
+}, [cepData, error])
+
 
   useEffect(() => {
     if (modalAberto) {
@@ -50,17 +62,35 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onSaved, o
     }
   }, [modalAberto]);
 
+  // preenche o formulario no modal de editar
+useEffect(() => {
+  if (enderecoInicial) {
+    setForm({
+      nome: enderecoInicial.nome || "",
+      cpf: enderecoInicial.cpf ? formatCPF(enderecoInicial.cpf) : "",
+      cep: enderecoInicial.cep ? formatCEP(enderecoInicial.cep) : "",
+      logradouro: enderecoInicial.logradouro || "",
+      bairro: enderecoInicial.bairro || "",
+      cidade: enderecoInicial.cidade || "",
+      estado: enderecoInicial.estado || "",
+    });
+  }
+}, [enderecoInicial]);
+
   const abrirModalMensagem = (mensagem: string, tipo: "sucesso" | "erro" | "info" = "info") => {
     setModalMensagem(mensagem);
     setModalTipo(tipo);
     setModalAberto(true);
   };
 
+  // atualiza qualquer campo do form
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
+  // atualiza e valida cpf
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valor = formatCPF(e.target.value);
@@ -73,36 +103,19 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({ enderecoInicial, onSaved, o
       setErrors(prev => ({ ...prev, cpf: "" }));
     }
   };
+  
+  // atualiza cep e reseta campos relacionados caso incompleto
 
-  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const valor = formatCEP(e.target.value);
-    setForm(prev => ({ ...prev, cep: valor }));
+const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const valor = formatCEP(e.target.value);
+  setForm(prev => ({ ...prev, cep: valor }));
 
-    const cepLimpo = valor.replace(/\D/g, "");
-    if (cepLimpo.length === 8) {
-      try {
-        const data = await fetchCep(cepLimpo);
-        if (!data.erro) {
-          setForm(prev => ({
-            ...prev,
-            logradouro: data.logradouro,
-            bairro: data.bairro,
-            cidade: data.localidade,
-            estado: data.uf,
-          }));
-          setErrors(prev => ({ ...prev, cep: "" }));
-        } else {
-          setForm(prev => ({ ...prev, logradouro: "", bairro: "", cidade: "", estado: "" }));
-          setErrors(prev => ({ ...prev, cep: "CEP não encontrado" }));
-        }
-      } catch {
-        setErrors(prev => ({ ...prev, cep: "Erro ao buscar CEP" }));
-      }
-    } else {
-      setForm(prev => ({ ...prev, logradouro: "", bairro: "", cidade: "", estado: "" }));
-      setErrors(prev => ({ ...prev, cep: "" }));
-    }
-  };
+  if (valor.replace(/\D/g, "").length < 8) {
+    setForm(prev => ({ ...prev, logradouro: "", bairro: "", cidade: "", estado: "" }));
+    setErrors(prev => ({ ...prev, cep: "" }));
+  }
+};
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

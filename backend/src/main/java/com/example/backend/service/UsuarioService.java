@@ -21,7 +21,7 @@ public class UsuarioService {
     }
 
     public List<Usuario> findAll() {
-        return repository.findAll();
+        return repository.findAllOrderByDataAtualizacaoDesc();
     }
 
     public Optional<Usuario> findById(Long id) {
