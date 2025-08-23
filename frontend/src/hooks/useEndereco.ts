@@ -4,12 +4,11 @@ import {
   createEndereco,
   updateEndereco,
   deleteEndereco,
-  fetchCep
+  fetchCep,
 } from "../services/enderecoService";
 import type { Endereco } from "../types/Endereco";
 import type { EnderecoCreate } from "../types/EnderecoCreate";
 import type { CepResponse } from "../types/Cep";
-
 
 const keys = {
   all: ["enderecos"] as const,
@@ -69,11 +68,6 @@ export const useCep = (cep: string) => {
   return useQuery<CepResponse, Error>({
     queryKey: ["cep", cepLimpo],
     queryFn: () => fetchCep(cepLimpo),
-    enabled: cepLimpo.length === 8, 
+    enabled: cepLimpo.length === 8,
   });
 };
-
-
-
-
-

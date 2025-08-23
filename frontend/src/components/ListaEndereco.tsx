@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useQuery, useQueryClient  } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchEnderecos } from "../services/enderecoService.ts";
 import ModalMensagem from "./ModalMensagem";
 import ModalConfirmacao from "./ModalConfirmacao";
@@ -14,11 +14,15 @@ interface ListaEnderecosProps {
 const ITEMS_PER_PAGE = 4;
 
 const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
-  const { data: enderecos = [], isLoading, isError } = useQuery<Endereco[]>({
+  const {
+    data: enderecos = [],
+    isLoading,
+    isError,
+  } = useQuery<Endereco[]>({
     queryKey: ["enderecos", atualizar],
     queryFn: fetchEnderecos,
   });
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   const deleteMutation = useDeleteEndereco();
 
   const [paginaAtual, setPaginaAtual] = useState(1);
@@ -34,7 +38,9 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
   // Modal de mensagem
   const [modalAberto, setModalAberto] = useState(false);
   const [modalMensagem, setModalMensagem] = useState("");
-  const [modalTipo, setModalTipo] = useState<"sucesso" | "erro" | "info">("info");
+  const [modalTipo, setModalTipo] = useState<"sucesso" | "erro" | "info">(
+    "info"
+  );
 
   // Modal de confirmação
   const [confirmAberto, setConfirmAberto] = useState(false);
@@ -45,7 +51,7 @@ const ListaEnderecos: React.FC<ListaEnderecosProps> = ({ atualizar }) => {
     setConfirmAberto(true);
   };
 
-const confirmarDelete = async () => {
+  const confirmarDelete = async () => {
     if (idParaDeletar === null) return;
     deleteMutation.mutate(idParaDeletar, {
       onSuccess: () => {
@@ -70,7 +76,8 @@ const confirmarDelete = async () => {
     mensagem: string | object,
     tipo: "sucesso" | "erro" | "info" = "info"
   ) => {
-    const texto = typeof mensagem === "string" ? mensagem : JSON.stringify(mensagem);
+    const texto =
+      typeof mensagem === "string" ? mensagem : JSON.stringify(mensagem);
     setModalMensagem(texto);
     setModalTipo(tipo);
     setModalAberto(true);
@@ -80,20 +87,21 @@ const confirmarDelete = async () => {
 
   useEffect(() => {
     if (modalAberto) {
-      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+      const scrollBarWidth =
+        window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = "hidden";
-      document.body.style.paddingRight = `${scrollBarWidth}px`; // evita o "pulo"
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
     } else {
       document.body.style.overflow = "";
       document.body.style.paddingRight = "";
     }
-  
+
     return () => {
       document.body.style.overflow = "";
       document.body.style.paddingRight = "";
     };
   }, [modalAberto]);
-  
+
   const handleActionClick = (id: number) => {
     setOpenActionId(openActionId === id ? null : id);
   };
@@ -110,7 +118,8 @@ const confirmarDelete = async () => {
   const fecharModal = () => setEditando(null);
 
   if (isLoading) return <p className="text-gray-500">Carregando...</p>;
-  if (isError) return <p className="text-red-500">Erro ao carregar endereços</p>;
+  if (isError)
+    return <p className="text-red-500">Erro ao carregar endereços</p>;
 
   return (
     <>
@@ -121,11 +130,21 @@ const confirmarDelete = async () => {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead>
                 <tr>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">Nome</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">CPF</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">CEP</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">Endereço</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">Ações</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                    Nome
+                  </th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                    CPF
+                  </th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                    CEP
+                  </th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                    Endereço
+                  </th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                    Ações
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 text-gray-900 dark:text-white">
@@ -136,25 +155,20 @@ const confirmarDelete = async () => {
                     <td className="px-4 py-2">{e.cep}</td>
                     <td className="px-4 py-2">{`${e.logradouro}, ${e.bairro}, ${e.cidade} - ${e.estado}`}</td>
                     <td className="px-4 py-2 flex items-center gap-2">
-  {/* Botão Editar visível sempre */}
-  <button
-    onClick={() => handleEdit(e)}
-    className="bg-green-600 text-white px-2 py-1 rounded"
-  >
-    Editar
-  </button>
+                      <button
+                        onClick={() => handleEdit(e)}
+                        className="bg-green-600 text-white px-2 py-1 rounded"
+                      >
+                        Editar
+                      </button>
 
-  {/* Botão Excluir visível sempre */}
-  <button
-    onClick={() => handleDelete(e.id)}
-    className="bg-red-600 text-white px-2 py-1 rounded"
-  >
-    Excluir
-  </button>
-</td>
-
-
-
+                      <button
+                        onClick={() => handleDelete(e.id)}
+                        className="bg-red-600 text-white px-2 py-1 rounded"
+                      >
+                        Excluir
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -168,11 +182,23 @@ const confirmarDelete = async () => {
         <div className="md:hidden space-y-4 overflow-y-auto">
           {enderecosPaginados.length > 0 ? (
             enderecosPaginados.map((e) => (
-              <div key={e.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white mt-3 max-w-full">
-                <p><strong>Nome:</strong> {e.nome}</p>
-                <p><strong>CPF:</strong> {e.cpf}</p>
-                <p><strong>CEP:</strong> {e.cep}</p>
-                <p className="break-words whitespace-normal"><strong>Endereço:</strong> {`${e.logradouro}, ${e.bairro}, ${e.cidade} - ${e.estado}`}</p>
+              <div
+                key={e.id}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white mt-3 max-w-full"
+              >
+                <p>
+                  <strong>Nome:</strong> {e.nome}
+                </p>
+                <p>
+                  <strong>CPF:</strong> {e.cpf}
+                </p>
+                <p>
+                  <strong>CEP:</strong> {e.cep}
+                </p>
+                <p className="break-words whitespace-normal">
+                  <strong>Endereço:</strong>{" "}
+                  {`${e.logradouro}, ${e.bairro}, ${e.cidade} - ${e.estado}`}
+                </p>
                 <div className="relative mt-2">
                   <button
                     onClick={() => handleActionClick(e.id)}
@@ -218,7 +244,9 @@ const confirmarDelete = async () => {
               Página {paginaAtual} de {totalPaginas}
             </span>
             <button
-              onClick={() => setPaginaAtual((p) => Math.min(p + 1, totalPaginas))}
+              onClick={() =>
+                setPaginaAtual((p) => Math.min(p + 1, totalPaginas))
+              }
               disabled={paginaAtual === totalPaginas}
               className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50"
             >
@@ -227,35 +255,38 @@ const confirmarDelete = async () => {
           </div>
         )}
 
-     {/* Modal de edição */}
-{editando && (
-  <div 
-    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    onClick={fecharModal} 
-  >
-    <div 
-      className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-full max-w-lg mx-4 relative"
-      onClick={(e) => e.stopPropagation()} 
-    >
-      <button 
-        onClick={fecharModal} 
-        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-lg font-bold"
-      >
-        ✕
-      </button>
+        {/* Modal de edição */}
+        {editando && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            onClick={fecharModal}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-full max-w-lg mx-4 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={fecharModal}
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-lg font-bold"
+              >
+                ✕
+              </button>
 
-      {/* Formulário de edição */}
-      <FormEndereco
-        enderecoInicial={editando}
-        onUpdated={() => {
-          queryClient.invalidateQueries({ queryKey: ["enderecos"] });
-          fecharModal();
-          abrirModalMensagem("Endereço atualizado com sucesso!", "sucesso");
-        }}
-      />
-    </div>
-  </div>
-)}
+              {/* Formulário de edição */}
+              <FormEndereco
+                enderecoInicial={editando}
+                onUpdated={() => {
+                  queryClient.invalidateQueries({ queryKey: ["enderecos"] });
+                  fecharModal();
+                  abrirModalMensagem(
+                    "Endereço atualizado com sucesso!",
+                    "sucesso"
+                  );
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <ModalMensagem
@@ -265,14 +296,13 @@ const confirmarDelete = async () => {
         onClose={fecharModalMensagem}
       />
 
-<ModalConfirmacao
+      <ModalConfirmacao
         aberto={confirmAberto}
         mensagem="Tem certeza que deseja excluir este endereço?"
         onConfirm={confirmarDelete}
         onCancel={cancelarDelete}
       />
     </>
-    
   );
 };
 

@@ -103,7 +103,7 @@ useEffect(() => {
       setErrors(prev => ({ ...prev, cpf: "" }));
     }
   };
-  
+
   // atualiza cep e reseta campos relacionados caso incompleto
 
 const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,15 +122,14 @@ const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     
 
     try {
-      const parsed = enderecoSchema.parse(form); // Validação Zod
+      const parsed = enderecoSchema.parse(form); 
       setErrors({});
 
       if (enderecoInicial?.id) {
       await updateMut.mutateAsync({ id: enderecoInicial.id, ...parsed });
       abrirModalMensagem("Endereço atualizado com sucesso!", "sucesso");
-      onUpdated?.(); // só chama se existir
+      onUpdated?.();
     }     else {
-        // Criar
         await createMut.mutateAsync(parsed);
         abrirModalMensagem("Endereço salvo com sucesso!", "sucesso");
         setForm({ nome: "", cpf: "", cep: "", logradouro: "", bairro: "", cidade: "", estado: "" });
@@ -160,7 +159,6 @@ const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
  return (
   <>
     <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md w-full max-w-2xl">
-      {/* Nome e CPF */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col">
           <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">Nome</label>
@@ -186,7 +184,6 @@ const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         </div>
       </div>
 
-      {/* CEP */}
       <div className="flex flex-col">
         <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">CEP</label>
         <input
@@ -198,8 +195,6 @@ const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         />
         {errors.cep && <p className="text-red-500 text-sm mt-1">{errors.cep}</p>}
       </div>
-
-      {/* Logradouro, Bairro, Cidade e Estado */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {["logradouro", "bairro", "cidade", "estado"].map(f => (
           <div key={f} className="flex flex-col">
@@ -216,7 +211,6 @@ const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         ))}
       </div>
 
-      {/* Botão */}
       <button
         type="submit"
         disabled={loading}
