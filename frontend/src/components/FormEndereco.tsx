@@ -212,6 +212,7 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({
               name="nome"
               value={form.nome}
               onChange={handleChange}
+              maxLength={30}
               className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
             {errors.nome && (
