@@ -22,7 +22,7 @@ Docker Compose (v2 ou superior)
 Acesso à internet para baixar imagens
 
 📁 Estrutura do Projeto
-desafio_junior/
+cadastro-de-enderecos/
 ├── backend/ # Java + Spring Boot
 ├── frontend/ # React + TypeScript (Vite)
 ├── docker-compose.yml
@@ -35,7 +35,7 @@ docker compose up -d --build
 
 Isso irá:
 
-Baixar as imagens necessárias (openjdk, gradle, node, nginx, postgres)
+Baixar as imagens necessárias (openjdk, gradle, node, nginx, mysql)
 
 Buildar o backend via Gradle (./gradlew build)
 
@@ -43,7 +43,7 @@ Buildar o frontend via Vite (npm run build)
 
 Subir os containers: backend, frontend e banco de dados
 
-⏳ O backend pode demorar 1-2 minutos para se conectar ao PostgreSQL nas primeiras vezes, dependendo do seu computador.
+⏳ O backend pode demorar 1-2 minutos para se conectar ao Mysql nas primeiras vezes, dependendo do seu computador.
 
 🌐 Acessando os serviços
 
@@ -75,7 +75,7 @@ Spring Boot + Java 21
 
 Gradle – Gerenciador de build
 
-PostgreSQL – Banco de dados relacionalal
+Mysql – Banco de dados relacional
 
 TELAS :
 
