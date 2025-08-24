@@ -262,7 +262,7 @@ const FormEndereco: React.FC<FormEnderecoProps> = ({
                 name={f}
                 value={(form as any)[f]}
                 onChange={handleChange}
-                readOnly={!!(form as any)[f]}
+                readOnly={true}
                 className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
               {errors[f] && (
