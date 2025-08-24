@@ -41,10 +41,14 @@ public ResponseEntity<?> createUsuario(@Valid @RequestBody UsuarioRequestDTO dto
 }
 
     
-    @GetMapping
-    public List<Usuario> getAllUsuarios() {
-        return service.findAll();
-    }
+@GetMapping
+public List<UsuarioResponseDTO> getAllUsuarios() {
+    return service.findAll()
+                  .stream()
+                  .map(UsuarioResponseDTO::new)
+                  .toList();
+}
+
   @PutMapping("/{id}")
 public ResponseEntity<?> updateUsuario(@PathVariable Long id, @Valid @RequestBody UsuarioRequestDTO dto) {
     return service.findById(id).map(existing -> {
